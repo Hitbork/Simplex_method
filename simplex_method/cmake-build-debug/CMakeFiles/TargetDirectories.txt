@@ -1,0 +1,3 @@
+C:/Math-modeling-prs/Math-modeling-pr3/simplex_method/cmake-build-debug/CMakeFiles/simplex_method.dir
+C:/Math-modeling-prs/Math-modeling-pr3/simplex_method/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Math-modeling-prs/Math-modeling-pr3/simplex_method/cmake-build-debug/CMakeFiles/rebuild_cache.dir
