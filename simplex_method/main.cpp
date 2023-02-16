@@ -1,8 +1,59 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cmath>
+
 
 std::vector<std::vector<float>> table;
+std::vector<float> begginingF;
+
+
+// Function to check if number is endless
+bool is_number_endless(float number) {
+    if (number == 0) {
+        return false;
+    }
+
+    number *= 1000;
+
+    int intnum = (int)abs(number);
+    std::string temp = std::to_string(intnum);
+
+    if (temp[1] == '0') {
+        return false;
+    }
+
+    return (temp[1] == temp[2]) && (temp[1] == temp[2]);
+}
+
+
+// Function to turn endless number into string
+std::string turn_endless_number_into_str(float number) {
+    number *= 100;
+
+    int intnum = (int)(number);
+    std::string temp = std::to_string(intnum);
+    bool is_positive = intnum >= 0;
+
+    int index;
+
+    if (is_positive) {
+        index = 1;
+    } else {
+        index = 2;
+    }
+
+    char endlessNumber = temp[index];
+
+    int tempNumber = intnum / 100;
+
+    if (is_positive) {
+        return std::to_string(tempNumber) + ".(" + endlessNumber + ')';
+    } else {
+        tempNumber = abs(tempNumber);
+        return '-' + std::to_string(tempNumber) + ".(" + endlessNumber + ')';
+    }
+}
 
 
 // Function to output table
@@ -22,7 +73,11 @@ void output_table() {
             std::cout << "      \t";
         }
         for (int j = 0; j < table[i].size(); j++) {
-            std::cout << table[i][j] << "\t";
+            if (is_number_endless(table[i][j])) {
+                std::cout << turn_endless_number_into_str(table[i][j]) << "\t";
+            } else {
+                std::cout << table[i][j] << "\t";
+            }
         }
         if (i == table.size() - 1) {
             std::cout << "f\t";
@@ -100,6 +155,8 @@ void oddsOfEquation(std::string &maxEquation, int &numberOfVariables) {
 
     sortOdds(maxEquation, oddsOfMaxEquation, numberOfVariables);
 
+    begginingF = oddsOfMaxEquation;
+
     for (int i = 0; i < table[0].size() - numberOfVariables; i++) {
         oddsOfMaxEquation.push_back(0);
     }
@@ -137,9 +194,248 @@ void input_equations(std::string &maxEquation, int &numberOfVariables) {
     for (int i = 0; i < finalValues.size(); i++) {
         table[i].push_back(finalValues[i]);
     }
+}
 
-    std::cout << "\n\n";
-    output_table();
+
+// Function to check if there is at least one number larger than 0
+bool are_answers_positive() {
+    for (int i = 0; i < table[table.size()-1].size(); i++) {
+        if (table[table.size()-1][i] > 0)
+            return true;
+    }
+
+    return false;
+}
+
+
+// Function to output columns odds
+void output_column_odds(std::vector<std::vector<float>> &columnOdds, std::vector<int> &columnsOfPositiveAnswers, float &maxOfMaxs) {
+    std::cout << "\n\nColumn odds:\n";
+
+    for (int i = 0; i < columnOdds.size(); i++) {
+        std::cout << " " << columnsOfPositiveAnswers[i]+1 << " col\t";
+
+        for (int j = 0; j < columnOdds[i].size()-1; j++) {
+            if (columnOdds[i][j] != -1) {
+                std::cout << columnOdds[i][j] << "\t";
+            } else {
+                std::cout << "-\t";
+            }
+        }
+        std::cout << "=> " << columnOdds[i][columnOdds[i].size() - 1];
+        if (columnOdds[i][columnOdds[i].size() - 1] == maxOfMaxs) {
+            std::cout << " (max)";
+        }
+        std::cout << "\n";
+    }
+}
+
+
+// Function to fill column odds of positive answers
+bool fill_column_of_odds(std::vector<std::vector<float>> &columnsOdds, std::vector<int> &columnsOfPositiveAnswers) {
+    bool are_answers_endless = true;
+    std::vector<float> currentColumn;
+
+    for (int i = 0; i < columnsOfPositiveAnswers.size(); i++) {
+        currentColumn.resize(0);
+
+        for (int j = 0; j < table.size()-1; j++) {
+            if (table[j][columnsOfPositiveAnswers[i]] < 0) {
+                currentColumn.push_back(-1);
+            } else {
+                currentColumn.push_back(table[j][table[j].size()-1] / table[j][columnsOfPositiveAnswers[i]]);
+            }
+        }
+
+        columnsOdds.push_back(currentColumn);
+    }
+
+    for (int i = 0; i < currentColumn.size(); i++) {
+        if (currentColumn[i] != -1)
+            are_answers_endless = false;
+    }
+
+    if ((columnsOdds.size() == 1) &&
+            (are_answers_endless)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// Function to add to column of adds maximums
+std::vector<int> add_to_column_of_odds_maximums(std::vector<std::vector<float>> &columnsOdds, std::vector<int>  &columnsOfPositiveAnswers) {
+    std::vector<int> indexesOfMinInColumns;
+
+    for (int i = 0; i < columnsOdds.size(); i++) {
+        float minOfColumn = 1000;
+        int indexOfMin = -1;
+
+        for (int j = 0; j < columnsOdds[i].size(); j++) {
+            if ((columnsOdds[i][j] != -1) && (columnsOdds[i][j] < minOfColumn)) {
+                minOfColumn = columnsOdds[i][j];
+                indexOfMin = j;
+            }
+        }
+
+        if (minOfColumn != -2) {
+            columnsOdds[i].push_back(minOfColumn * table[table.size()-1][columnsOfPositiveAnswers[i]]);
+        } else {
+            columnsOdds[i].push_back(-1);
+        }
+
+        indexesOfMinInColumns.push_back(indexOfMin);
+    }
+
+    return indexesOfMinInColumns;
+}
+
+
+// Function max between max in columns of odds
+float search_max_of_maxs_in_columns_of_odds(std::vector<std::vector<float>> &columnsOdds) {
+    float max = -2;
+
+    for (int i = 0; i < columnsOdds.size(); i++) {
+        if (max < columnsOdds[i][columnsOdds[i].size() - 1]) {
+            max = columnsOdds[i][columnsOdds[i].size() - 1];
+        }
+    }
+
+    return max;
+}
+
+
+// Function
+std::vector<int> search_index_of_needed_number_in_table(std::vector<std::vector<float>> &columnsOdds, std::vector<int> &columnsOfPositiveAnswers, float &maxOfMaxs, std::vector<int> &indexesOfMinInColumns) {
+    std::vector<int> indexOfNeededNumber;
+
+    int indexOfColumnThereIsMax = -1;
+    for (int i = 0; i < columnsOdds.size(); i++) {
+        if (columnsOdds[i][columnsOdds[i].size()-1] == maxOfMaxs) {
+            indexOfColumnThereIsMax = i;
+            break;
+        }
+    }
+
+    indexOfNeededNumber.push_back(indexesOfMinInColumns[indexOfColumnThereIsMax]);
+    indexOfNeededNumber.push_back(columnsOfPositiveAnswers[indexOfColumnThereIsMax]);
+
+    return indexOfNeededNumber;
+}
+
+
+// Function
+void dividving_table_on_row(std::vector<int> &indexOfNeededNumberInTable) {
+    float multiplier;
+
+    for (int i = 0; i < table.size(); i++) {
+        if (i != indexOfNeededNumberInTable[0]) {
+            multiplier = table[i][indexOfNeededNumberInTable[1]];
+            for (int j = 0; j < table[i].size(); j++) {
+                table[i][j] = table[i][j] - table[indexOfNeededNumberInTable[0]][j] * multiplier;
+            }
+        }
+    }
+}
+
+
+// Function
+std::vector<float> search_numbers_of_x(int &numberOfVariables) {
+    std::vector<float> numbersOfX;
+
+    for (int i = 0; i < numberOfVariables; i++) {
+        if (table[table.size()-1][i] == 0) {
+            int indexOf1;
+
+            for (int j = 0; j < table.size()-1; j++) {
+                if (table[j][i] == 1) {
+                    indexOf1 = j;
+                    break;
+                }
+            }
+
+            numbersOfX.push_back(table[indexOf1][table[indexOf1].size()-1]);
+        } else {
+            numbersOfX.push_back(0);
+        }
+    }
+
+    return numbersOfX;
+}
+
+
+// Function to find result
+std::string find_result(int &numberOfVariables) {
+    bool areAnswersEndless = false;
+    while ((are_answers_positive()) && (!areAnswersEndless)) {
+        std::cout << "\n\n";
+        output_table();
+
+        std::vector<int> columnsOfPositiveAnswers;
+
+        for (int i = 0; i < table[table.size()-1].size(); i++) {
+            if (table[table.size()-1][i] > 0)
+                columnsOfPositiveAnswers.push_back(i);
+        }
+
+
+        std::vector<std::vector<float>> columnsOdds;
+
+        areAnswersEndless = fill_column_of_odds(columnsOdds, columnsOfPositiveAnswers);
+
+        if (areAnswersEndless) {
+            break;
+        }
+        std::vector<int> indexesOfMinInColumns =  add_to_column_of_odds_maximums(columnsOdds, columnsOfPositiveAnswers);
+
+        float maxOfMaxs = search_max_of_maxs_in_columns_of_odds(columnsOdds);
+
+        output_column_odds(columnsOdds, columnsOfPositiveAnswers, maxOfMaxs);
+
+        std::vector<int> indexOfNeededNumberInTable = search_index_of_needed_number_in_table(columnsOdds, columnsOfPositiveAnswers, maxOfMaxs, indexesOfMinInColumns);
+
+        // Outputting info about needed number
+        std::cout << "\nNeeded number is " << table[indexOfNeededNumberInTable[0]][indexOfNeededNumberInTable[1]]
+                << "\n";
+        std::cout << "Indexes of needed number: " << indexOfNeededNumberInTable[0]
+                << " " << indexOfNeededNumberInTable[0] << "\n\n";
+
+        if (table[indexOfNeededNumberInTable[0]][indexOfNeededNumberInTable[1]] != 1) {
+            std::cout << "In case needed number is not equal 1, we do dividing of string on number: "
+                    << table[indexOfNeededNumberInTable[0]][indexOfNeededNumberInTable[1]] << "\n\n";
+            float divider = table[indexOfNeededNumberInTable[0]][indexOfNeededNumberInTable[1]];
+            for (int i = 0; i < table[indexOfNeededNumberInTable[0]].size(); i++) {
+                table[indexOfNeededNumberInTable[0]][i] /= divider;
+            }
+
+            output_table();
+        }
+
+        std::cout << "\nNow we need to make column all zeros, except needed row\n\n";
+
+        dividving_table_on_row(indexOfNeededNumberInTable);
+
+        output_table();
+    }
+
+    if (!areAnswersEndless) {
+        std::vector<float> numbersOfX = search_numbers_of_x(numberOfVariables);
+
+        float result = 0;
+
+        std::string strResult = "X: ";
+
+        for (int i = 0; i < numbersOfX.size(); i++) {
+            result += numbersOfX[i]  * begginingF[i];
+            strResult += std::to_string(numbersOfX[i]) + " ";
+        }
+
+        strResult += "\n Fmax = ";
+        strResult += std::to_string(result);
+
+        return strResult;
+    }
+    return " Answer are endless!\n";
 }
 
 
@@ -148,32 +444,34 @@ int main() {
     std::cout << "\nSimplex method\n\n\n";
 
 
-    {
-        // Input max equation
-        std::string maxEquation;
+    // Input max equation
+    std::string maxEquation;
 
-        std::cout << "Input equation that we need to max:\n";
-        std::cout << "Example: 'f=2x1-3x2'\n";
-        std::cin >> maxEquation;
-
-
-        // Creating vector for table
-        int amountOfEquations, numberOfVariables;
-
-        std::cout << "\nInput quantity of equations you have in system of equations\n";
-        std::cout << "(except equations like 'x1 >= 0', 'x2>= 0' and etc.):\n";
-        std::cin >> amountOfEquations;
-
-        std::cout << "\nInput quantity of variables:\n";
-        std::cin >> numberOfVariables;
-        std::cout << "\n\n";
-        creating_table(amountOfEquations, numberOfVariables);
-
-        // Input equations
-        input_equations(maxEquation, numberOfVariables);
-    }
+    std::cout << "Input equation that we need to max:\n";
+    std::cout << "Example: 'f=2x1-3x2'\n";
+    std::cin >> maxEquation;
 
 
+    // Creating vector for table
+    int amountOfEquations, numberOfVariables;
+
+    std::cout << "\nInput quantity of equations you have in system of equations\n";
+    std::cout << "(except equations like 'x1 >= 0', 'x2>= 0' and etc.):\n";
+    std::cin >> amountOfEquations;
+
+    std::cout << "\nInput quantity of variables:\n";
+    std::cin >> numberOfVariables;
+    std::cout << "\n\n";
+    creating_table(amountOfEquations, numberOfVariables);
+
+    // Input equations
+    input_equations(maxEquation, numberOfVariables);
+
+
+    // Find result
+    std::string result = find_result(numberOfVariables);
+
+    std::cout << "\n\n\n      Result!    \n" << result << "\n";
 
     return 0;
 }
