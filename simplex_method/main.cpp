@@ -277,11 +277,14 @@ std::vector<int> add_to_column_of_odds_maximums(std::vector<std::vector<float>> 
                 indexOfMin = j;
             }
         }
-
-        if (minOfColumn != -2) {
-            columnsOdds[i].push_back(minOfColumn * table[table.size()-1][columnsOfPositiveAnswers[i]]);
+        if (indexOfMin != -1) {
+            if (minOfColumn != -2) {
+                columnsOdds[i].push_back(minOfColumn * table[table.size()-1][columnsOfPositiveAnswers[i]]);
+            } else {
+                columnsOdds[i].push_back(-1);
+            }
         } else {
-            columnsOdds[i].push_back(-1);
+            columnsOdds[i].push_back(0);
         }
 
         indexesOfMinInColumns.push_back(indexOfMin);
