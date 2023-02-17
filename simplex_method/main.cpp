@@ -45,13 +45,13 @@ std::string turn_endless_number_into_str(float number) {
 
     char endlessNumber = temp[index];
 
-    int tempNumber = intnum / 100;
+    int tempNumber = intnum / 10;
 
     if (is_positive) {
-        return std::to_string(tempNumber) + ".(" + endlessNumber + ')';
+        return std::to_string(tempNumber/10)  + "." + std::to_string(tempNumber%10) + "(" + endlessNumber + ')';
     } else {
         tempNumber = abs(tempNumber);
-        return '-' + std::to_string(tempNumber) + ".(" + endlessNumber + ')';
+        return '-' + std::to_string(tempNumber/10)  + "." + std::to_string(tempNumber%10) + "(" + endlessNumber + ')';
     }
 }
 

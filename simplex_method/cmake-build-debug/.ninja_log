@@ -1,3 +1,5 @@
 # ninja log v5
 6	5549	6983232132432895	CMakeFiles/simplex_method.dir/main.cpp.obj	517615d64492af63
 5550	5792	6983232134838752	simplex_method.exe	24251499bb51957
+3	5000	6983242849945026	CMakeFiles/simplex_method.dir/main.cpp.obj	517615d64492af63
+5001	5231	6983242852188179	simplex_method.exe	24251499bb51957
